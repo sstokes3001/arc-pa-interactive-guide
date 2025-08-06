@@ -1,1 +1,610 @@
-<content of the file>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive ARC-PA Compliance & Assessment Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Academic Blue & Gold -->
+    <!-- Application Structure Plan: The application is designed as a single-page dashboard with a fixed sidebar for navigation. This structure was chosen to provide users with a constant, clear overview of the available content sections, allowing them to jump between strategic analysis (Dashboard), foundational standards (Frameworks), practical application (Objective Lab, Assessment Studio), and risk management (Pitfalls) without losing context. This non-linear approach transforms the dense report into an accessible, task-oriented tool, enhancing usability for busy program administrators who may need to find specific information quickly. Key interactions include tabbed content, interactive diagrams built with HTML/CSS, and dynamic charts to make data exploration engaging and intuitive. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: ARC-PA Citation Data -> Goal: Highlight compliance risk areas -> Viz/Method: Bar Chart (Chart.js) -> Interaction: Tooltips on hover provide exact citation counts -> Justification: A bar chart is the clearest way to compare the frequency of citations across different standards, immediately drawing attention to the most problematic areas like B4.01a.
+        - Report Info: ARC-PA Educational Hierarchy -> Goal: Explain the relationship between competencies, outcomes, and objectives -> Viz/Method: Custom HTML/CSS Flow Diagram -> Interaction: Hovering over each element reveals its definition -> Justification: A visual, interactive diagram is more effective than text for explaining a hierarchical structure, making the relationships tangible and easier to grasp.
+        - Report Info: Bloom's Taxonomy -> Goal: Provide a practical tool for writing objectives -> Viz/Method: Interactive Tabbed Component (HTML/JS) -> Interaction: Clicking a tab for each cognitive level displays associated action verbs and examples -> Justification: This transforms a static table into an interactive tool, allowing faculty to focus on one cognitive level at a time, which is more practical for curriculum development.
+        - Report Info: Miller's Pyramid -> Goal: Align assessment methods with clinical competence levels -> Viz/Method: Custom HTML/CSS Pyramid Diagram -> Interaction: Clicking a level of the pyramid filters a list of appropriate assessment methods -> Justification: This visually connects the theoretical framework to practical assessment choices, reinforcing the principle of constructive alignment.
+        - Report Info: Common Pitfalls -> Goal: Teach users to identify and correct errors -> Viz/Method: Interactive "Before & After" Cards (HTML/JS) -> Interaction: Toggling a switch reveals the corrected version of a poorly written objective -> Justification: This active-learning approach is more engaging and memorable than simply listing mistakes and corrections.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link.active {
+            background-color: #e9ecef;
+            color: #0d3b66;
+            font-weight: 600;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        .hierarchy-item, .pyramid-level {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .hierarchy-item:hover, .pyramid-level:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .pitfall-card {
+            perspective: 1000px;
+        }
+        .pitfall-flipper {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+        .pitfall-card.flipped .pitfall-flipper {
+            transform: rotateY(180deg);
+        }
+        .pitfall-front, .pitfall-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .pitfall-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white shadow-md flex-shrink-0">
+            <div class="p-6">
+                <h1 class="text-xl font-bold text-blue-900">ARC-PA Guide</h1>
+                <p class="text-sm text-gray-500">Interactive Dashboard</p>
+            </div>
+            <nav id="main-nav" class="mt-4">
+                <a href="#dashboard" class="nav-link flex items-center py-3 px-6 text-gray-600 hover:bg-gray-100">
+                    <span class="mr-3">📊</span> Dashboard
+                </a>
+                <a href="#frameworks" class="nav-link flex items-center py-3 px-6 text-gray-600 hover:bg-gray-100">
+                    <span class="mr-3">🏛️</span> Core Frameworks
+                </a>
+                <a href="#objectives" class="nav-link flex items-center py-3 px-6 text-gray-600 hover:bg-gray-100">
+                    <span class="mr-3">✍️</span> Objective Crafting Lab
+                </a>
+                <a href="#assessment" class="nav-link flex items-center py-3 px-6 text-gray-600 hover:bg-gray-100">
+                    <span class="mr-3">🎯</span> Assessment Studio
+                </a>
+                <a href="#best-practices" class="nav-link flex items-center py-3 px-6 text-gray-600 hover:bg-gray-100">
+                    <span class="mr-3">⭐</span> Best Practices
+                </a>
+                <a href="#pitfalls" class="nav-link flex items-center py-3 px-6 text-gray-600 hover:bg-gray-100">
+                    <span class="mr-3">⚠️</span> Pitfall Prevention
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12">
+            
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Compliance Dashboard</h2>
+                <p class="text-gray-600 mb-8">An overview of key compliance risks and strategic recommendations for your PA program.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-semibold text-lg text-blue-900">Demonstrable Linkage</h3>
+                        <p class="text-gray-600 mt-2 text-sm">The ARC-PA 5th Edition places heightened emphasis on the documented link between competencies, objectives, and assessments. A systematic approach is no longer optional.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-semibold text-lg text-red-700">Assessment Alignment Risk</h3>
+                        <p class="text-gray-600 mt-2 text-sm">Failures in assessment alignment (Standard B4.01a) are a leading cause of citations. This signals a critical need to validate that you are testing what you teach.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-semibold text-lg text-green-700">Actionable Recommendation</h3>
+                        <p class="text-gray-600 mt-2 text-sm">Mandate a program-wide curriculum audit using mapping matrices to visualize and verify alignment between objectives and assessments.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow mb-12">
+                    <h3 class="text-xl font-bold text-center text-gray-800 mb-4">Top ARC-PA Citation Risks (June 2020 - March 2025)</h3>
+                    <p class="text-center text-gray-600 mb-6">This chart highlights the most frequently cited standards, emphasizing the critical importance of assessment. The data clearly shows that Standard B4.01a, concerning the alignment of assessments with learning objectives, is a major area of concern for programs nationwide.</p>
+                    <div class="chart-container">
+                        <canvas id="citationsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Compliance Risk Matrix</h3>
+                    <p class="text-gray-600 mb-6">Use this matrix to self-assess your program's vulnerability. The goal is to move from high-risk, ad-hoc practices to low-risk, systematic processes that institutionalize compliance and quality.</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-100 text-gray-700">
+                                <tr>
+                                    <th class="p-4">ARC-PA Standard</th>
+                                    <th class="p-4 bg-red-100 text-red-800">High Risk / No Formal Process</th>
+                                    <th class="p-4 bg-yellow-100 text-yellow-800">Moderate Risk / Ad-Hoc Process</th>
+                                    <th class="p-4 bg-green-100 text-green-800">Low Risk / Systematic Process</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="p-4 font-semibold">B4.01a: Assessment Alignment</td>
+                                    <td class="p-4 bg-red-50">Assessments created by faculty with no formal review. Over-reliance on MCQs.</td>
+                                    <td class="p-4 bg-yellow-50">Alignment discussed informally but not documented. Inconsistent across courses.</td>
+                                    <td class="p-4 bg-green-50">Formal curriculum map links every objective to an assessment. Committee reviews for alignment.</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="p-4 font-semibold">B4.01b: Identifying Deficiencies</td>
+                                    <td class="p-4 bg-red-50">Failures recorded but no standardized remediation process beyond re-testing.</td>
+                                    <td class="p-4 bg-yellow-50">Remediation plans are inconsistent and faculty-dependent. Sporadic documentation.</td>
+                                    <td class="p-4 bg-green-50">Formal, documented remediation policy. Data used to identify at-risk students early.</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="p-4 font-semibold">B1.01b: Competency Integration</td>
+                                    <td class="p-4 bg-red-50">Competencies exist but are not explicitly linked to course objectives or assessments.</td>
+                                    <td class="p-4 bg-yellow-50">Syllabi may list competencies, but the connection isn't mapped or tracked program-wide.</td>
+                                    <td class="p-4 bg-green-50">Curriculum map explicitly links all course outcomes to program competencies.</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-4 font-semibold">C1.02: Continuous Improvement</td>
+                                    <td class="p-4 bg-red-50">Data used for grading only. "Self-study" is a pre-accreditation activity.</td>
+                                    <td class="p-4 bg-yellow-50">Individual course directors make changes, but no program-level review of data.</td>
+                                    <td class="p-4 bg-green-50">Curriculum committee conducts annual review of aggregated data and documents action plans.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Frameworks Section -->
+            <section id="frameworks" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Core Educational Frameworks</h2>
+                <p class="text-gray-600 mb-8">Understanding the ARC-PA's educational architecture is fundamental to compliance. This section visualizes the key hierarchies and frameworks that govern curriculum design and assessment.</p>
+
+                <div class="bg-white p-8 rounded-lg shadow mb-12">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">The ARC-PA Educational Hierarchy</h3>
+                    <p class="text-gray-600 mb-8 text-center max-w-3xl mx-auto">This hierarchy shows how broad program goals are broken down into the specific, measurable actions that guide daily instruction and assessment. Hover over each level to see its official definition. A compliant program must demonstrate clear, documented links between all three levels.</p>
+                    <div class="flex flex-col items-center space-y-4">
+                        <!-- Program Competencies -->
+                        <div class="hierarchy-item w-full max-w-md bg-blue-900 text-white p-4 rounded-lg shadow-lg text-center relative">
+                            <h4 class="font-bold text-lg">Program Competencies</h4>
+                            <div class="absolute inset-0 bg-black bg-opacity-75 text-white flex items-center justify-center p-4 rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+                                Broad, summative statements defining the abilities required for entry-level PA practice (e.g., Medical Knowledge, Patient Care).
+                            </div>
+                        </div>
+                        <div class="text-2xl text-blue-500">↓</div>
+                        <!-- Learning Outcomes -->
+                        <div class="hierarchy-item w-full max-w-lg bg-blue-700 text-white p-4 rounded-lg shadow-lg text-center relative">
+                            <h4 class="font-bold text-lg">Course Learning Outcomes</h4>
+                            <div class="absolute inset-0 bg-black bg-opacity-75 text-white flex items-center justify-center p-4 rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+                                The measurable abilities attained by a student at the completion of a specific course or curricular component. They provide evidence of progress toward competencies.
+                            </div>
+                        </div>
+                        <div class="text-2xl text-blue-500">↓</div>
+                        <!-- Instructional Objectives -->
+                        <div class="hierarchy-item w-full max-w-xl bg-blue-500 text-white p-4 rounded-lg shadow-lg text-center relative">
+                            <h4 class="font-bold text-lg">Instructional Objectives</h4>
+                            <div class="absolute inset-0 bg-black bg-opacity-75 text-white flex items-center justify-center p-4 rounded-lg opacity-0 hover:opacity-100 transition-opacity">
+                                The most granular, specific, and measurable statements that guide student acquisition of required competencies within a single lesson or activity.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Objectives Section -->
+            <section id="objectives" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Objective Crafting Lab</h2>
+                <p class="text-gray-600 mb-8">Develop clear, measurable, and compliant learning objectives using Bloom's Taxonomy. A well-written objective is the cornerstone of an aligned curriculum.</p>
+
+                <div class="bg-white p-8 rounded-lg shadow">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Applying Bloom's Taxonomy</h3>
+                    <p class="text-gray-600 mb-6">Select a cognitive level to see appropriate action verbs and a PA-specific example objective. This ensures your objectives are written with the correct level of rigor and are directly assessable.</p>
+                    
+                    <div id="bloom-tabs" class="flex flex-wrap border-b border-gray-200 mb-6">
+                        <!-- Tabs will be generated by JS -->
+                    </div>
+
+                    <div id="bloom-content" class="p-4 bg-gray-50 rounded-lg min-h-[200px]">
+                        <!-- Content will be generated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Assessment Section -->
+            <section id="assessment" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Assessment Alignment Studio</h2>
+                <p class="text-gray-600 mb-8">Ensure your assessments are validly measuring student competence by aligning them with Miller's Pyramid. Avoid the critical pitfall of testing higher-order skills with lower-level methods.</p>
+
+                <div class="lg:flex lg:space-x-8">
+                    <!-- Miller's Pyramid Diagram -->
+                    <div class="lg:w-1/2 bg-white p-8 rounded-lg shadow mb-8 lg:mb-0">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">Miller's Pyramid of Clinical Competence</h3>
+                        <p class="text-gray-600 mb-8 text-center">Click on a level of the pyramid to see appropriate assessment methods. The key is to match the assessment to the level of competence you intend to measure.</p>
+                        <div id="miller-pyramid" class="space-y-2 flex flex-col-reverse">
+                            <div id="pyramid-level-1" class="pyramid-level bg-green-600 text-white p-4 rounded-lg shadow-lg text-center w-full mx-auto">
+                                <h4 class="font-bold">Level 1: Knows</h4>
+                            </div>
+                            <div id="pyramid-level-2" class="pyramid-level bg-green-500 text-white p-4 rounded-lg shadow-lg text-center w-11/12 mx-auto">
+                                <h4 class="font-bold">Level 2: Knows How</h4>
+                            </div>
+                            <div id="pyramid-level-3" class="pyramid-level bg-yellow-500 text-white p-4 rounded-lg shadow-lg text-center w-10/12 mx-auto">
+                                <h4 class="font-bold">Level 3: Shows How</h4>
+                            </div>
+                            <div id="pyramid-level-4" class="pyramid-level bg-red-600 text-white p-4 rounded-lg shadow-lg text-center w-9/12 mx-auto">
+                                <h4 class="font-bold">Level 4: Does</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assessment Methods List -->
+                    <div class="lg:w-1/2 bg-white p-8 rounded-lg shadow">
+                         <h3 id="assessment-methods-title" class="text-xl font-bold text-gray-800 mb-6">Appropriate Assessment Methods</h3>
+                         <ul id="assessment-methods-list" class="space-y-4 text-gray-700">
+                            <!-- List items will be generated by JS -->
+                         </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Best Practices Section -->
+            <section id="best-practices" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Best Practices Showcase</h2>
+                <p class="text-gray-600 mb-8">Learn from leading PA programs. This section provides a comparative analysis of their competency frameworks, highlighting unique features and common themes in excellence.</p>
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Comparative Competency Frameworks</h3>
+                    <p class="text-gray-600 mb-6">This table compares the competency frameworks of several exemplary programs. Note how each program's framework reflects its unique mission while adhering to national standards. Use this to benchmark and refine your own program's structure.</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-100 text-gray-700">
+                                <tr>
+                                    <th class="p-4">Institution</th>
+                                    <th class="p-4">Core Competency Domains</th>
+                                    <th class="p-4">Unique Emphasis / Key Feature</th>
+                                </tr>
+                            </thead>
+                            <tbody id="best-practices-table">
+                                <!-- Data will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pitfalls Section -->
+            <section id="pitfalls" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Pitfall Prevention Center</h2>
+                <p class="text-gray-600 mb-8">Recognize and avoid the common errors that lead to misaligned curricula and ARC-PA citations. Use these interactive examples to sharpen your skills in objective writing and assessment design.</p>
+                
+                <div id="pitfalls-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Pitfall cards will be generated by JS -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('#main-nav a');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            function navigateTo(hash) {
+                navLinks.forEach(link => {
+                    if (link.getAttribute('href') === hash) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+
+                contentSections.forEach(section => {
+                    if ('#' + section.id === hash) {
+                        section.classList.add('active');
+                    } else {
+                        section.classList.remove('active');
+                    }
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const hash = this.getAttribute('href');
+                    window.location.hash = hash;
+                });
+            });
+
+            window.addEventListener('hashchange', () => {
+                navigateTo(window.location.hash || '#dashboard');
+            });
+            
+            navigateTo(window.location.hash || '#dashboard');
+
+            // Chart.js for Citations
+            const ctx = document.getElementById('citationsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['B4.01a: Assessment Alignment', 'B4.01b: Identifying Deficiencies', 'B1.01b: Competency Integration', 'C1.02: Continuous Improvement'],
+                    datasets: [{
+                        label: '# of Citations (June 2020 - March 2025)',
+                        data: [121, 113, 85, 72],
+                        backgroundColor: [
+                            'rgba(220, 38, 38, 0.6)',
+                            'rgba(217, 119, 6, 0.6)',
+                            'rgba(2, 132, 199, 0.6)',
+                            'rgba(22, 163, 74, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(220, 38, 38, 1)',
+                            'rgba(217, 119, 6, 1)',
+                            'rgba(2, 132, 199, 1)',
+                            'rgba(22, 163, 74, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Citations'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Bloom's Taxonomy Data
+            const bloomData = {
+                Remember: {
+                    verbs: "Cite, Define, Identify, Label, List, Name, Recall, Recite, State",
+                    example: "Upon completion of the session, the student will be able to <strong>list</strong> the five most common causative organisms of community-acquired pneumonia."
+                },
+                Understand: {
+                    verbs: "Classify, Compare, Describe, Discuss, Explain, Paraphrase, Summarize",
+                    example: "Upon completion of the session, the student will be able to <strong>explain</strong> the pathophysiological mechanism of action of metformin in the treatment of type 2 diabetes."
+                },
+                Apply: {
+                    verbs: "Apply, Calculate, Demonstrate, Implement, Interpret, Operate, Solve, Use",
+                    example: "Upon completion of the session, the student will be able to <strong>interpret</strong> a standard 12-lead EKG to identify sinus rhythm, atrial fibrillation, and ventricular tachycardia."
+                },
+                Analyze: {
+                    verbs: "Analyze, Categorize, Compare, Contrast, Differentiate, Deconstruct, Organize",
+                    example: "Upon completion of the session, the student will be able to <strong>differentiate</strong> the clinical presentation of a patient with acute coronary syndrome from one with pulmonary embolism."
+                },
+                Evaluate: {
+                    verbs: "Appraise, Argue, Critique, Defend, Judge, Justify, Recommend, Support",
+                    example: "Upon completion of the session, the student will be able to <strong>critique</strong> a clinical practice guideline for hypertension management based on the strength of its supporting evidence."
+                },
+                Create: {
+                    verbs: "Assemble, Construct, Design, Develop, Formulate, Generate, Propose, Write",
+                    example: "Upon completion of the session, the student will be able to <strong>formulate</strong> a comprehensive, patient-centered management plan for a patient with newly diagnosed congestive heart failure."
+                }
+            };
+            
+            const bloomTabsContainer = document.getElementById('bloom-tabs');
+            const bloomContentContainer = document.getElementById('bloom-content');
+            let firstTab = true;
+
+            for (const level in bloomData) {
+                const tab = document.createElement('button');
+                tab.className = `py-2 px-4 text-sm font-medium rounded-t-lg ${firstTab ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'}`;
+                tab.textContent = level;
+                tab.dataset.level = level;
+
+                tab.addEventListener('click', (e) => {
+                    document.querySelectorAll('#bloom-tabs button').forEach(btn => {
+                        btn.className = 'py-2 px-4 text-sm font-medium rounded-t-lg text-gray-500 hover:text-gray-700 hover:border-gray-300';
+                    });
+                    e.target.className = 'py-2 px-4 text-sm font-medium rounded-t-lg text-blue-600 border-b-2 border-blue-600';
+                    const data = bloomData[e.target.dataset.level];
+                    bloomContentContainer.innerHTML = `
+                        <h4 class="font-semibold text-gray-700 mb-2">Recommended Action Verbs:</h4>
+                        <p class="text-gray-600 mb-4 text-sm">${data.verbs}</p>
+                        <h4 class="font-semibold text-gray-700 mb-2">PA Education Example:</h4>
+                        <p class="text-gray-600 text-sm italic">${data.example}</p>
+                    `;
+                });
+                
+                bloomTabsContainer.appendChild(tab);
+                
+                if (firstTab) {
+                    tab.click();
+                    firstTab = false;
+                }
+            }
+            
+            // Miller's Pyramid
+            const millerData = {
+                1: {
+                    title: "Level 1: Knows (Factual Recall)",
+                    methods: ["Multiple-Choice Questions (single-best-answer)", "True/False", "Matching", "Short-Answer Questions"],
+                    example: "An exam question asking students to identify the first-line pharmacologic agent for uncomplicated hypertension."
+                },
+                2: {
+                    title: "Level 2: Knows How (Application of Knowledge)",
+                    methods: ["Clinical Vignette-Based MCQs", "Extended Matching Sets", "Case-Based Short Essays", "Concept Maps"],
+                    example: "A complex clinical vignette requiring the student to select the most appropriate diagnostic workup from a list of options."
+                },
+                3: {
+                    title: "Level 3: Shows How (Simulated Competence)",
+                    methods: ["Objective Structured Clinical Examinations (OSCEs)", "Standardized Patient Encounters", "Procedural Simulations", "Role-Playing"],
+                    example: "A 12-station OSCE where a student must take a history, perform an exam, and counsel a standardized patient."
+                },
+                4: {
+                    title: "Level 4: Does (Performance in Practice)",
+                    methods: ["Preceptor Evaluations", "Direct Observation of Procedural Skills (DOPS)", "Mini-Clinical Evaluation Exercise (Mini-CEX)", "Clinical Portfolios"],
+                    example: "A preceptor's end-of-rotation evaluation assessing a student's ability to care for real patients over a 4-week period."
+                }
+            };
+
+            const pyramidLevels = document.querySelectorAll('.pyramid-level');
+            const assessmentTitle = document.getElementById('assessment-methods-title');
+            const assessmentList = document.getElementById('assessment-methods-list');
+
+            function updateAssessmentList(level) {
+                const data = millerData[level];
+                assessmentTitle.textContent = data.title;
+                assessmentList.innerHTML = '';
+                data.methods.forEach(method => {
+                    const li = document.createElement('li');
+                    li.className = "flex items-start";
+                    li.innerHTML = `<span class="text-green-500 mr-3 mt-1">✓</span> <span>${method}</span>`;
+                    assessmentList.appendChild(li);
+                });
+                const exampleLi = document.createElement('li');
+                exampleLi.className = "mt-4 pt-4 border-t border-gray-200";
+                exampleLi.innerHTML = `<h5 class="font-semibold text-gray-700">Example:</h5><p class="text-sm text-gray-600 italic">${data.example}</p>`;
+                assessmentList.appendChild(exampleLi);
+
+                pyramidLevels.forEach(el => {
+                    el.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-500');
+                });
+                document.getElementById(`pyramid-level-${level}`).classList.add('ring-2', 'ring-offset-2', 'ring-blue-500');
+            }
+
+            pyramidLevels.forEach((level, index) => {
+                const levelNumber = index + 1;
+                level.addEventListener('click', () => updateAssessmentList(levelNumber));
+            });
+
+            updateAssessmentList(1);
+            
+            // Best Practices Data
+            const bestPracticesData = [
+                {
+                    institution: "Duke University",
+                    domains: "• Medical Knowledge<br>• Interpersonal Skills<br>• Clinical & Technical Skills<br>• Professional Behaviors<br>• Clinical Reasoning & Problem Solving",
+                    feature: "Explicit separation of Clinical Reasoning as a distinct, high-level competency domain."
+                },
+                {
+                    institution: "Stanford University",
+                    domains: "• Medical Knowledge & Clinical Skills<br>• Interpersonal & Communication Skills<br>• Health Care Finance<br>• Professionalism & Leadership",
+                    feature: "Integration of leadership and healthcare finance as core competencies, reflecting a mission to develop PA leaders."
+                },
+                {
+                    institution: "University of Iowa",
+                    domains: "• Interpersonal & Communication Skills<br>• Medical Knowledge<br>• Practice-Based Learning & Improvement<br>• Patient Care<br>• Professionalism<br>• Systems-Based Practice",
+                    feature: "Competencies are integrated across three longitudinal curriculum strands (MOHD, MAS, CAPS) in a 'triple helix' model."
+                },
+                {
+                    institution: "University of North Carolina",
+                    domains: "• Medical Knowledge<br>• Patient Care<br>• Professionalism & Cultural Humility<br>• Interpersonal & Communication Skills<br>• Systems-Based Practice<br>• Self-Assessment & Professional Development",
+                    feature: "Highly granular framework with numbered sub-competencies explicitly mapped to national PAEA competencies."
+                },
+                {
+                    institution: "UT Southwestern",
+                    domains: "• Knowledge for Practice<br>• Interpersonal & Communication Skills<br>• Person-Centered Care<br>• Interprofessional Collaboration<br>• Professionalism & Ethics<br>• Practice-based Learning & QI<br>• Society & Population Health",
+                    feature: "Framework is directly derived from the 'Competencies for the Physician Assistant Profession,' ensuring alignment with national standards."
+                }
+            ];
+
+            const practicesTable = document.getElementById('best-practices-table');
+            bestPracticesData.forEach(item => {
+                const row = practicesTable.insertRow();
+                row.className = "border-b hover:bg-gray-50";
+                row.innerHTML = `
+                    <td class="p-4 font-semibold">${item.institution}</td>
+                    <td class="p-4">${item.domains}</td>
+                    <td class="p-4 text-gray-600">${item.feature}</td>
+                `;
+            });
+
+            // Pitfalls Data
+            const pitfallsData = [
+                {
+                    title: "Ambiguous Language",
+                    before: '"The student will understand the importance of evidence-based medicine."',
+                    after: '"The student will be able to <strong>formulate</strong> a clinical question in PICO format and <strong>appraise</strong> a primary research article to answer that question."'
+                },
+                {
+                    title: "Compound Objectives",
+                    before: '"The student will be able to diagnose and treat community-acquired pneumonia."',
+                    after: '1. "The student will be able to <strong>formulate</strong> a diagnosis of CAP..."<br>2. "The student will be able to <strong>select</strong> the appropriate first-line antibiotic therapy for CAP..."'
+                },
+                {
+                    title: "Cognitive Mismatch",
+                    before: '<strong>Objective:</strong> "Create a management plan..." (Create)<br><strong>Assessment:</strong> MCQ test on drug side effects (Remember)',
+                    after: '<strong>Aligned Assessment:</strong> A complex case simulation where the student must write out a detailed management plan, graded with a rubric.'
+                }
+            ];
+
+            const pitfallsContainer = document.getElementById('pitfalls-container');
+            pitfallsData.forEach(pitfall => {
+                const card = document.createElement('div');
+                card.className = 'pitfall-card bg-white rounded-lg shadow h-64';
+                card.innerHTML = `
+                    <div class="pitfall-flipper w-full h-full">
+                        <div class="pitfall-front p-6 flex flex-col justify-between border-2 border-red-200 rounded-lg">
+                            <div>
+                                <h4 class="font-bold text-red-700">${pitfall.title}</h4>
+                                <p class="text-sm text-gray-600 mt-2"><strong>Before:</strong> ${pitfall.before}</p>
+                            </div>
+                            <button class="text-sm text-blue-600 font-semibold self-start">Show Solution →</button>
+                        </div>
+                        <div class="pitfall-back p-6 flex flex-col justify-between bg-green-50 border-2 border-green-200 rounded-lg">
+                            <div>
+                                <h4 class="font-bold text-green-800">Solution</h4>
+                                <p class="text-sm text-gray-700 mt-2"><strong>After:</strong> ${pitfall.after}</p>
+                            </div>
+                             <button class="text-sm text-blue-600 font-semibold self-start">← See Problem</button>
+                        </div>
+                    </div>
+                `;
+                card.querySelector('button').addEventListener('click', () => card.classList.toggle('flipped'));
+                card.querySelector('.pitfall-back button').addEventListener('click', () => card.classList.toggle('flipped'));
+                pitfallsContainer.appendChild(card);
+            });
+
+        });
+    </script>
+</body>
+</html>
